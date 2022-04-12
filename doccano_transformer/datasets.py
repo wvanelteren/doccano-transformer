@@ -53,6 +53,13 @@ class NERDataset(TaskDataset):
         for example in self:
             yield from example.to_conll2003(tokenizer)
 
+    def to_ner_conll(
+        self, tokenizer: Callable[[str], List[str]]
+    ) -> Iterator[str]:
+        for example in self:
+            yield from example.to_ner_conll(tokenizer)
+
+
     def to_spacy(
         self, tokenizer: Callable[[str], List[str]]
     ) -> Iterator[dict]:
