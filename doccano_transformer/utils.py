@@ -65,23 +65,45 @@ def create_bio_tags(
         (List[str]): The list of the BIO tag.
     """
     labels = sorted(labels)
+    #print(labels)
     n = len(labels)
+    #print(n)
     i = 0
     prefix = 'B-'
     tags = []
-    for token, token_start in zip(tokens, offsets):
+    #print("LENGTHS: ", len(offsets), len(offsets[1:] + [-1]))
+    for token, token_start, next_token_start in zip(tokens, offsets, offsets[1:] + [-1]):
         token_end = token_start + len(token)
+        #print("TOKEN_START: ", token_start, "\tTOKEN_END: ", token_end, "\tNEXT_TOKEN_START: ", next_token_start, "\tLABEL: ", labels[i] if i < n else None)
+
         if i >= n or token_end < labels[i][0]:
+            #print("TOKEN FINISHES BEFORE LABEL STARTS")
             tags.append('O')
         elif token_start > labels[i][1]:
+            #print("TOKEN STARTS AFTER LABEL ENDS")
             tags.append('O')
         else:
             tags.append(prefix + str(labels[i][2]))
+            # el final de la anotacion es mayor que el final del token
             if labels[i][1] > token_end:
-                prefix = 'I-'
+                if labels[i][1] < next_token_start:
+                    #print("FINISHING TOKEN")
+                    i += 1
+                    prefix = 'B-'
+                else:
+                    #print("CONTINUING TOKEN")
+                    prefix = 'I-'
             elif i < n:
+                #print("FINISHING TOKEN")
                 i += 1
                 prefix = 'B-'
+
+    
+    
+    #print(i, n)
+    if i < n:
+        print("ERROR NOT ALL TAGS WERE SAVED TO CONLL03")
+    #print([(i, j) for i, j in zip(tokens, tags)])
     return tags
 
 
