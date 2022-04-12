@@ -60,23 +60,46 @@ class NERExample:
     def to_conll2003(
         self, tokenizer: Callable[[str], List[str]]
     ) -> Iterator[dict]:
-        all_tokens, all_token_offsets = self.get_tokens_and_token_offsets(
-            tokenizer)
+        all_tokens, all_token_offsets = self.get_tokens_and_token_offsets(tokenizer)
         for user, labels in self.labels.items():
             label_split = [[] for _ in range(len(self.sentences))]
             for label in labels:
-                for i, (start, end) in enumerate(
-                        zip(self.sentence_offsets, self.sentence_offsets[1:])):
+                for i, (start, end) in enumerate( zip(self.sentence_offsets, self.sentence_offsets[1:])):
                     if start <= label[0] <= label[1] <= end:
                         label_split[i].append(label)
             lines = ['-DOCSTART- -X- -X- O\n\n']
-            for tokens, offsets, label in zip(
-                    all_tokens, all_token_offsets, label_split):
+            #print("LABEL_SPLIT: ", label_split)
+            for tokens, offsets, label in zip(all_tokens, all_token_offsets, label_split):
                 tags = utils.create_bio_tags(tokens, offsets, label)
+
                 for token, tag in zip(tokens, tags):
+                    #print("TOKEN: ", token, "TAG: ", tag)
                     lines.append(f'{token} _ _ {tag}\n')
                 lines.append('\n')
             yield {'user': user, 'data': ''.join(lines)}
+
+
+    def to_ner_conll(
+        self, tokenizer: Callable[[str], List[str]]
+    ) -> Iterator[dict]:
+        all_tokens, all_token_offsets = self.get_tokens_and_token_offsets(tokenizer)
+        for user, labels in self.labels.items():
+            label_split = [[] for _ in range(len(self.sentences))]
+            for label in labels:
+                for i, (start, end) in enumerate( zip(self.sentence_offsets, self.sentence_offsets[1:])):
+                    if start <= label[0] <= label[1] <= end:
+                        label_split[i].append(label)
+            lines = ['\n']
+            #print("LABEL_SPLIT: ", label_split)
+            for tokens, offsets, label in zip(all_tokens, all_token_offsets, label_split):
+                tags = utils.create_bio_tags(tokens, offsets, label)
+
+                for token, tag in zip(tokens, tags):
+                    #print("TOKEN: ", token, "TAG: ", tag)
+                    lines.append(f'{token} {tag}\n')
+                lines.append('\n')
+            yield {'user': user, 'data': ''.join(lines)}
+
 
     def to_spacy(
         self, tokenizer: Callable[[str], List[str]]
