@@ -1,7 +1,7 @@
 from collections import defaultdict
 from typing import Callable, Iterator, List, Optional
 
-from spacy.gold import biluo_tags_from_offsets
+from spacy.training import offsets_to_biluo_tags
 
 from doccano_transformer import utils
 
