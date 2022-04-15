@@ -59,6 +59,12 @@ class NERDataset(TaskDataset):
         for example in self:
             yield from example.to_ner_conll(tokenizer)
 
+    def to_guillaume_type(
+        self, tokenizer: Callable[[str], List[str]]
+    ) -> Iterator[str]:
+        for example in self:
+            yield from example.to_guillaume_type(tokenizer)
+
 
     def to_spacy(
         self, tokenizer: Callable[[str], List[str]]
