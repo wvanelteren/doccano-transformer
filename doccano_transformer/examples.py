@@ -132,7 +132,7 @@ class NERExample:
                         labels.append(f' {tag}')
 
 
-                lines.append('\n')
+
             yield {'user': user, 'tokens': ''.join(lines), 'labels': ''.join(labels)}
 
 
