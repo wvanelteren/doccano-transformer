@@ -101,6 +101,43 @@ class NERExample:
             yield {'user': user, 'data': ''.join(lines)}
 
 
+    def to_guillaume_type(
+        self, tokenizer: Callable[[str], List[str]]
+    ) -> Iterator[dict]:
+        all_tokens, all_token_offsets = self.get_tokens_and_token_offsets(tokenizer)
+        for user, labels in self.labels.items():
+            label_split = [[] for _ in range(len(self.sentences))]
+            for label in labels:
+                for i, (start, end) in enumerate( zip(self.sentence_offsets, self.sentence_offsets[1:])):
+                    if start <= label[0] <= label[1] <= end:
+                        label_split[i].append(label)
+            
+            
+            lines = []
+            labels = []
+            #print("LABEL_SPLIT: ", label_split)
+            
+            
+            for tokens, offsets, label in zip(all_tokens, all_token_offsets, label_split):
+                tags = utils.create_iobes_tags(tokens, offsets, label)
+
+                firstFlag = True
+                for token, tag in zip(tokens, tags):
+                    if firstFlag == True:
+                        lines.append(f'{token}')
+                        labels.append(f'{tag}')
+                        firstFlag = False
+                    else:
+                        lines.append(f' {token}')
+                        labels.append(f' {tag}')
+
+
+                lines.append('\n')
+            yield {'user': user, 'tokens': ''.join(lines), 'labels': ''.join(labels)}
+
+
+
+
     def to_spacy(
         self, tokenizer: Callable[[str], List[str]]
     ) -> Iterator[dict]:
