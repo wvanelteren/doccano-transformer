@@ -107,6 +107,71 @@ def create_bio_tags(
     return tags
 
 
+def create_iobes_tags(
+        tokens: List[str],
+        offsets: List[int],
+        labels: List[Tuple[int, int, str]]) -> List[str]:
+    """Create BI tags from Doccano's label data.
+
+    Args:
+        tokens (List[str]): The list of the token.
+        offsets (List[str]): The list of the character offset.
+        labels (List[Tuple[int, int, str]]): The list of labels. Each item in
+            the list holds three values which are the start offset, the end
+            offset, and the label name.
+    Returns:
+        (List[str]): The list of the BIO tag.
+    """
+    labels = sorted(labels)
+    #print(labels)
+    n = len(labels)
+    #print(n)
+    i = 0
+    prefix = 'B-'
+    tags = []
+    #print("LENGTHS: ", len(offsets), len(offsets[1:] + [-1]))
+    for token, token_start, next_token_start in zip(tokens, offsets, offsets[1:] + [-1]):
+        token_end = token_start + len(token)
+        #print("TOKEN_START: ", token_start, "\tTOKEN_END: ", token_end, "\tNEXT_TOKEN_START: ", next_token_start, "\tLABEL: ", labels[i] if i < n else None)
+
+        if i >= n or token_end < labels[i][0]:
+            #print("TOKEN FINISHES BEFORE LABEL STARTS")
+            tags.append('O')
+        elif token_start > labels[i][1]:
+            #print("TOKEN STARTS AFTER LABEL ENDS")
+            tags.append('O')
+        else:
+            toAppend = (   prefix, str(labels[i][2])   )
+            # el final de la anotacion es mayor que el final del token
+            if labels[i][1] > token_end:
+                if labels[i][1] < next_token_start:
+                    #print("FINISHING TOKEN")
+                    i += 1
+                    prefix = 'B-'
+                    toAppend = ('E-', toAppend[1])
+                else:
+                    #print("CONTINUING TOKEN")
+                    prefix = 'I-'
+            elif i < n:
+                #print("FINISHING TOKEN")
+                i += 1
+                prefix = 'B-'
+                if tags[-1] != 'O':
+                    toAppend = ('E-', toAppend[1])
+                else:
+                    toAppend = ('S-', toAppend[1])
+            
+            tags.append(toAppend[0] + toAppend[1])
+
+    
+    
+    #print(i, n)
+    if i < n:
+        print("ERROR NOT ALL TAGS WERE SAVED TO CONLL03")
+    #print([(i, j) for i, j in zip(tokens, tags)])
+    return tags
+
+
 class Token:
     def __init__(self, token: str, offset: int, i: int) -> None:
         self.token = token
