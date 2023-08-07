@@ -89,7 +89,7 @@ class NERExample:
                 for i, (start, end) in enumerate( zip(self.sentence_offsets, self.sentence_offsets[1:])):
                     if start <= label[0] <= label[1] <= end:
                         label_split[i].append(label)
-            lines = ['\n']
+            lines = []
             #print("LABEL_SPLIT: ", label_split)
             for tokens, offsets, label in zip(all_tokens, all_token_offsets, label_split):
                 tags = utils.create_bio_tags(tokens, offsets, label)
