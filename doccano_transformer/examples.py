@@ -101,7 +101,7 @@ class NERExample:
             yield {'user': user, 'data': ''.join(lines)}
 
 
-    def to_guillaume_type(
+    def to_ner_transformers(
         self, tokenizer: Callable[[str], List[str]]
     ) -> Iterator[dict]:
         all_tokens, all_token_offsets = self.get_tokens_and_token_offsets(tokenizer)
@@ -111,28 +111,15 @@ class NERExample:
                 for i, (start, end) in enumerate( zip(self.sentence_offsets, self.sentence_offsets[1:])):
                     if start <= label[0] <= label[1] <= end:
                         label_split[i].append(label)
-            
-            
+
             lines = []
             labels = []
-            #print("LABEL_SPLIT: ", label_split)
-            
-            
+
             for tokens, offsets, label in zip(all_tokens, all_token_offsets, label_split):
                 tags = utils.create_iobes_tags(tokens, offsets, label)
-
-                firstFlag = True
                 for token, tag in zip(tokens, tags):
-                    if firstFlag == True:
-                        lines.append(f'{token}')
-                        labels.append(f'{tag}')
-                        firstFlag = False
-                    else:
-                        lines.append(f' {token}')
-                        labels.append(f' {tag}')
-
-
-
+                    lines.append(token)
+                    labels.append(tag)
             yield {'user': user, 'tokens': ''.join(lines), 'labels': ''.join(labels)}
 
 
@@ -158,7 +145,7 @@ class NERExample:
                 tokens = utils.convert_tokens_and_offsets_to_spacy_tokens(
                     tokens, offsets
                 )
-                tags = biluo_tags_from_offsets(tokens, label)
+                tags = offsets_to_biluo_tags(tokens, label)
                 tokens_for_spacy = []
                 for i, (token, tag, offset) in enumerate(
                     zip(tokens, tags, offsets)
